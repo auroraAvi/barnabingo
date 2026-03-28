@@ -1,0 +1,8 @@
+pandas
+numpy
+matplotlib
+streamlit_image_coordinates
+random
+os
+datetime
+scipy
