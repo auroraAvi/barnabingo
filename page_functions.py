@@ -28,7 +28,7 @@ def load_stamp(file, zoom):
     return OffsetImage(arr_img, zoom=zoom)
 
 ######################################################################################
-@st.dialog("Bist du dir sicher, dass du eine neue Karte erstellen möchtest?")
+# @st.dialog("Bist du dir sicher, dass du eine neue Karte erstellen möchtest?")
 def refresh_check():
     if st.button("neue Karte"):
         st.session_state.confirmed_refresh = True
