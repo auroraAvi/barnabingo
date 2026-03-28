@@ -90,12 +90,12 @@ if click:
 pf.check_bingo()
         
 
-# # NEW CARD
-# st.divider()
-# b1, _, _ = st.columns(3)
+# NEW CARD
+st.divider()
+b1, _, _ = st.columns(3)
 
-# with b1:
-#     st.button("Erstelle neue Karte", icon=":material/refresh:", on_click=pf.refresh_check)
+with b1:
+    st.button("Erstelle neue Karte", icon=":material/refresh:", on_click=pf.refresh_check)
 
 ##############################################################
 # # BINGO GRID
