@@ -1,6 +1,7 @@
 import streamlit as st
 import numpy as np
 import matplotlib.pyplot as plt
+import os
 
 import card_functions as cf
 import page_functions as pf
@@ -15,7 +16,6 @@ st.set_page_config(
 grid_size = 5
 img_size = 750
 start_grid = pf.load_grid(grid_size)
-
 data = pf.load_data(
     [
         "./data/dinge.csv",
@@ -29,10 +29,14 @@ data = pf.load_data(
     ]
 )
 
+os.makedirs("Bingo_Card", exist_ok=True)
+
 if 'game' not in st.session_state:
+    st.session_state.file_name = pf.load_start_time()
     st.session_state.bingo_terms = cf.get_card_terms(grid_size, data)
     st.session_state.stamp = pf.load_stamp("./data/mm_blue.png", 0.15)
-    st.session_state.bingo_card, st.session_state.fig, st.session_state.ax = cf.create_bingo_card(grid_size, st.session_state.bingo_terms)
+    st.session_state.bingo_card = str(os.path.join("Bingo_Card", f"{pf.load_start_time()}-Bingo.png"))
+    st.session_state.fig, st.session_state.ax = cf.create_bingo_card(grid_size, st.session_state.bingo_terms)
     st.session_state.confirmed_refresh = False
     st.session_state.last_click = 0
     st.session_state.bingo_count = 0
@@ -42,7 +46,7 @@ if 'game' not in st.session_state:
 if st.session_state.confirmed_refresh:
     st.session_state.stamp = pf.load_stamp("./data/mm_blue.png", 0.15)
     st.session_state.bingo_terms = cf.get_card_terms(grid_size, data)
-    st.session_state.bingo_card, st.session_state.fig, st.session_state.ax = cf.create_bingo_card(grid_size, st.session_state.bingo_terms)
+    st.session_state.fig, st.session_state.ax = cf.create_bingo_card(grid_size, st.session_state.bingo_terms)
     st.session_state.confirmed_refresh = False
     st.session_state.game = start_grid
     st.session_state.bingo_count = 0

@@ -2,6 +2,7 @@ import streamlit as st
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
+from datetime import datetime
 
 from matplotlib.offsetbox import OffsetImage
 import scipy.ndimage as ndimage
@@ -27,6 +28,9 @@ def load_stamp(file, zoom):
     arr_img = ndimage.rotate(arr_img, 45, reshape=True)
     return OffsetImage(arr_img, zoom=zoom)
 
+@st.cache_data
+def load_start_time():
+    return datetime.today().strftime("%d-%m-%Y_%H-%M-%s")
 ######################################################################################
 @st.dialog("Bist du dir sicher, dass du eine neue Karte erstellen möchtest?")
 def refresh_check():

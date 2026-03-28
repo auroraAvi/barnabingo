@@ -62,7 +62,7 @@ def split_term(word, max_chars):
         return word, 0
 
 #########################################################################################################
-def create_bingo_card(rowlen, bingo_terms, output_dir="Bingo_Card"):
+def create_bingo_card(rowlen, bingo_terms):
     fig, ax = plt.subplots(figsize=(10,10))
     ax.set_xticks(np.arange(0, rowlen + 1))
     ax.set_yticks(np.arange(0, rowlen + 1))
@@ -93,11 +93,8 @@ def create_bingo_card(rowlen, bingo_terms, output_dir="Bingo_Card"):
     ax.add_artist(AnnotationBbox(st.session_state.stamp, (2.5, 2.5), xycoords='data', frameon=False, box_alignment=(0.5,0.5)))    
     plt.tight_layout()
 
-    os.makedirs(output_dir, exist_ok=True)
-    curr_date = datetime.today().strftime('%d-%m-%Y')
-    save_path = os.path.join(output_dir, f"{curr_date}-Bingo.png")
-    fig.savefig(save_path)
-    return str(save_path), fig, ax
+    fig.savefig(st.session_state.bingo_card)
+    return fig, ax
 
 ###################################################################################################
 def update_bingo_card(fig, ax, xy, task, save_path):
