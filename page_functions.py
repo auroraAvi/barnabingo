@@ -28,7 +28,7 @@ def load_stamp(file, zoom):
     arr_img = ndimage.rotate(arr_img, 45, reshape=True)
     return OffsetImage(arr_img, zoom=zoom)
 
-@st.cache_data
+@st.cache_resource
 def load_start_time():
     return datetime.today().strftime("%d-%m-%Y_%H-%M-%s")
 ######################################################################################
