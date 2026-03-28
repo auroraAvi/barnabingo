@@ -5,7 +5,6 @@ import numpy as np
 import random
 from datetime import datetime
 import streamlit as st
-from copy import copy
 
 def get_card_terms(rowlen, terms):
     bingo_terms = random.sample(terms, rowlen * rowlen -1)

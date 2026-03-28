@@ -85,7 +85,7 @@ if click:
             # Select grid slot
             st.session_state.fig, st.session_state.ax = cf.update_bingo_card(st.session_state.fig,st.session_state.ax, (click_x[0]+0.5, click_y[0]+0.5), "add", st.session_state.bingo_card)
             st.session_state.game[click_x, click_y] = 1
-        st.rerun()
+        st.experimental_rerun()
 
 pf.check_bingo()
         
