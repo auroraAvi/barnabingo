@@ -1,4 +1,5 @@
 pandas
 numpy
 matplotlib
+streamlit_image_coordinates
 scipy
