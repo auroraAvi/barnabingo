@@ -55,8 +55,7 @@ if st.session_state.new_bingo:
 #########################################################################################
 st.markdown("<h1 style='color:black;font-size:350%;'>BARNABINGO</h1>", unsafe_allow_html=True)
 #########################################################################################
-click = streamlit_image_coordinates(st.session_state.bingo_card, height=img_size, width=img_size)
-
+click = streamlit_image_coordinates(st.session_state.bingo_card,  use_column_width=True)
 if click:
     # New click
     if click["unix_time"] > st.session_state.last_click:
@@ -64,19 +63,33 @@ if click:
         st.session_state.last_click = click["unix_time"]
         # Convert coordinates to grid slots
         click_x = [
-            4 if click["x"] >= img_size/(125/99) else 
-            3 if click["x"] >= img_size/(5/3) else 
-            2 if click["x"] >= img_size/(250/101) else 
-            1 if click["x"] >= img_size/(250/53) else 
+            4 if click["x"] >= click["width"]/(125/99) else 
+            3 if click["x"] >= click["width"]/(500/299) else 
+            2 if click["x"] >= click["width"]/(250/101) else 
+            1 if click["x"] >= click["width"]/(1000/209) else 
             0
         ]
         click_y = [
-            0 if click["y"] >= img_size/(125/99) else 
-            1 if click["y"] >= img_size/(5/3) else 
-            2 if click["y"] >= img_size/(250/101) else 
-            3 if click["y"] >= img_size/(250/53) else 
+            0 if click["y"] >= click["height"]/(125/99) else 
+            1 if click["y"] >= click["height"]/(500/299) else 
+            2 if click["y"] >= click["height"]/(250/101) else 
+            3 if click["y"] >= click["height"]/(1000/209) else 
             4
         ]
+        # click_y = [
+        #     4 if click["y"] >= img_size/(125/99) else 
+        #     3 if click["y"] >= img_size/(5/3) else 
+        #     2 if click["y"] >= img_size/(250/101) else 
+        #     1 if click["y"] >= img_size/(250/53) else 
+        #     0
+        # ]
+        # click_x = [
+        #     0 if click["x"] >= img_size/(125/99) else 
+        #     1 if click["x"] >= img_size/(5/3) else 
+        #     2 if click["x"] >= img_size/(250/101) else 
+        #     3 if click["x"] >= img_size/(250/53) else 
+        #     4
+        # ]
         # De-Select grid slot
         if st.session_state.game[click_x, click_y] == 1:
             st.session_state.fig, st.session_state.ax = cf.update_bingo_card(st.session_state.fig, st.session_state.ax, (click_x[0]+0.5, click_y[0]+0.5), "remove", st.session_state.bingo_card)
@@ -96,19 +109,3 @@ b1, _, _ = st.columns(3)
 
 with b1:
     st.button("Erstelle neue Karte", icon=":material/refresh:", on_click=pf.refresh_check)
-
-##############################################################
-# # BINGO GRID
-# row1 = st.columns(5, width=1000)
-# row2 = st.columns(5, width=1000)
-# row3 = st.columns(5, width=1000)
-# row4 = st.columns(5, width=1000)
-# row5 = st.columns(5, width=1000)
-
-# t = range(1,27) 
-# j = 1
-# for i, col in enumerate(row1 + row2 + row3 + row4 + row5):
-#     with col.container(key=t[j], border=True, height=200, width=200, horizontal=True, horizontal_alignment="center", vertical_alignment="center"):
-#         if st.button(st.session_state.bingo_terms[i], type="tertiary", width="stretch"):
-#             st.write("AHHH")
-#         j = j+1
