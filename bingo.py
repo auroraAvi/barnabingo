@@ -7,6 +7,11 @@ import page_functions as pf
 from streamlit_image_coordinates import streamlit_image_coordinates
 
 #########################################################################################
+st.set_page_config(
+    page_title = "BARNABINGO",
+    layout="wide"
+)
+
 grid_size = 5
 img_size = 750
 start_grid = pf.load_grid(grid_size)
@@ -48,10 +53,6 @@ if st.session_state.new_bingo:
     st.balloons()
     st.session_state.new_bingo = False
 #########################################################################################
-st.set_page_config(
-    page_title = "BARNABINGO",
-    layout="wide"
-)
 st.markdown("<h1 style='color:black;font-size:350%;'>BARNABINGO</h1>", unsafe_allow_html=True)
 #########################################################################################
 click = streamlit_image_coordinates(st.session_state.bingo_card, height=img_size, width=img_size)
