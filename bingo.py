@@ -55,7 +55,7 @@ if st.session_state.new_bingo:
 #########################################################################################
 st.markdown("<h1 style='color:black;font-size:350%;'>BARNABINGO</h1>", unsafe_allow_html=True)
 #########################################################################################
-click = streamlit_image_coordinates(st.session_state.bingo_card, height=img_size, width=img_size, use_column_width=True)
+click = streamlit_image_coordinates(st.session_state.bingo_card, height=img_size, width=img_size)
 
 if click:
     # New click
