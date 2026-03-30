@@ -101,7 +101,7 @@ pf.check_bingo()
 
 # NEW CARD
 st.divider()
-b1, b2, b3, _ = st.columns([0.15, 0.15, 0.15, 0.55])
+b1, b2, b3, _ = st.columns([0.1, 0.1, 0.1, 0.7])
 
 with b1:
     st.button("Erstelle neue Karte", icon=":material/refresh:", on_click=pf.refresh_check)
