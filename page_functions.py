@@ -67,8 +67,6 @@ def check_bingo():
 
 
 ######################################################################################
-from io import StringIO
-
 @st.dialog("Bitte lade eine csv-Datei mit Begriffen hoch:")
 def upload_terms():
     file = st.file_uploader(
