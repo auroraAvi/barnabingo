@@ -64,3 +64,21 @@ def check_bingo():
         if st.session_state.bingo_count > 0:
             st.session_state.bingo_count = 0
             st.rerun()
+
+
+######################################################################################
+from io import StringIO
+
+@st.dialog("Bitte lade eine csv-Datei mit Begriffen hoch:")
+def upload_terms():
+    file = st.file_uploader(
+        label="Datei hochladen",
+        type="csv",
+    )
+    if file:
+        curr_data = pd.read_csv(file, index_col=0)
+        st.session_state.bingo_terms = [curr_data.iloc[i, 0] for i in curr_data.index]
+        st.session_state.confirmed_refresh = True
+        st.session_state.uploaded_terms = True
+        st.rerun()
+        

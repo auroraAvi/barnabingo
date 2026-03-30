@@ -2,6 +2,7 @@ import streamlit as st
 import numpy as np
 import matplotlib.pyplot as plt
 import os
+import pandas as pd
 
 import card_functions as cf
 import page_functions as pf
@@ -41,11 +42,15 @@ if 'game' not in st.session_state:
     st.session_state.last_click = 0
     st.session_state.bingo_count = 0
     st.session_state.new_bingo = False
+    st.session_state.uploaded_terms = False
     st.session_state.game = pf.load_grid(grid_size)
 
 if st.session_state.confirmed_refresh:
     st.session_state.stamp = pf.load_stamp("./data/mm_blue.png", 0.15)
-    st.session_state.bingo_terms = cf.get_card_terms(grid_size, data)
+    if st.session_state.uploaded_terms:
+        st.session_state.uploaded_terms = False
+    else:
+        st.session_state.bingo_terms = cf.get_card_terms(grid_size, data)
     st.session_state.fig, st.session_state.ax = cf.create_bingo_card(grid_size, st.session_state.bingo_terms)
     st.session_state.confirmed_refresh = False
     st.session_state.game = start_grid
@@ -59,6 +64,7 @@ if st.session_state.new_bingo:
 #########################################################################################
 st.markdown("<h1 style='color:black;font-size:350%;'>BARNABINGO</h1>", unsafe_allow_html=True)
 #########################################################################################
+
 click = streamlit_image_coordinates(st.session_state.bingo_card,  use_column_width=True)
 if click:
     # New click
@@ -80,20 +86,6 @@ if click:
             3 if click["y"] >= click["height"]/(1000/209) else 
             4
         ]
-        # click_y = [
-        #     4 if click["y"] >= img_size/(125/99) else 
-        #     3 if click["y"] >= img_size/(5/3) else 
-        #     2 if click["y"] >= img_size/(250/101) else 
-        #     1 if click["y"] >= img_size/(250/53) else 
-        #     0
-        # ]
-        # click_x = [
-        #     0 if click["x"] >= img_size/(125/99) else 
-        #     1 if click["x"] >= img_size/(5/3) else 
-        #     2 if click["x"] >= img_size/(250/101) else 
-        #     3 if click["x"] >= img_size/(250/53) else 
-        #     4
-        # ]
         # De-Select grid slot
         if st.session_state.game[click_x, click_y] == 1:
             st.session_state.fig, st.session_state.ax = cf.update_bingo_card(st.session_state.fig, st.session_state.ax, (click_x[0]+0.5, click_y[0]+0.5), "remove", st.session_state.bingo_card)
@@ -109,7 +101,23 @@ pf.check_bingo()
 
 # NEW CARD
 st.divider()
-b1, _, _ = st.columns(3)
+b1, b2, b3, _ = st.columns([0.15, 0.15, 0.15, 0.55])
 
 with b1:
     st.button("Erstelle neue Karte", icon=":material/refresh:", on_click=pf.refresh_check)
+
+with b2:
+    st.download_button(
+        label="Karte herunterladen", 
+        icon=":material/download:", 
+        data= pd.DataFrame(st.session_state.bingo_terms).to_csv().encode("utf-8"),
+        file_name="barnabingo_card.csv",
+        on_click='ignore',
+    )
+
+with b3:
+     st.button(
+        label= "Karte hochladen",
+        icon = ":material/upload:",
+        on_click= pf.upload_terms,
+    )
