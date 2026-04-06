@@ -67,7 +67,6 @@ def split_term(word, max_chars):
         return word, 0
 
 #########################################################################################################
-@st.cache_resource
 def create_bingo_card(rowlen, bingo_terms):
     fig, ax = plt.subplots(figsize=(10,10))
     ax.set_xticks(np.arange(0, rowlen + 1))

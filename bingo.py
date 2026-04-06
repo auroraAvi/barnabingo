@@ -71,45 +71,6 @@ if st.session_state.new_bingo:
 #########################################################################################
 st.markdown("<h1 style='color:black;font-size:350%;'>BARNABINGO</h1>", unsafe_allow_html=True)
 #########################################################################################
-with st.sidebar:
-    st.header("Spezielle Begriffe")
-    st.multiselect(
-        label="",
-        placeholder = "Wähle bis zu 4 Begriffe aus", 
-        options = sorted(data), 
-        max_selections=4,
-        key="custom_change", 
-        accept_new_options=False, 
-        on_change=cf.add_custom_terms,
-        label_visibility="collapsed"
-    )
-    if st.session_state.confirmed_refresh:
-        st.rerun()
-    st.divider()
-    st.subheader("Neue Karte")
-    st.button("Neue Karte erstellen", icon=":material/refresh:", on_click=pf.refresh_check)
-    st.divider()
-    st.subheader("Karte sichern")
-    st.download_button(
-        label="Begriffe sichern", 
-        icon=":material/download:", 
-        data= pd.DataFrame(st.session_state.bingo_terms).to_csv().encode("utf-8"),
-        file_name="barnabingo_card.csv",
-        on_click='ignore',
-    )
-    st.button(
-        label= "Begriffe hochladen",
-        icon = ":material/upload:",
-        on_click= pf.upload_terms,
-    )
-    st.divider()
-    st.subheader("Karte exportieren")
-    st.download_button(
-        label="Karte als Bild speichern",
-        icon=":material/file_export:",
-        data= pf.export_image(st.session_state.fig),
-        file_name="card.png",
-    )
 click = streamlit_image_coordinates(st.session_state.bingo_card,  use_column_width=True)
 if click:
     # New click
@@ -142,5 +103,42 @@ if click:
         st.rerun()
 
 pf.check_bingo()
-        
-    
+
+with st.sidebar:
+    st.subheader("Spezielle Begriffe:")    
+    st.multiselect(
+            label="",
+            placeholder = "Wähle bis zu 4 Begriffe aus", 
+            options = sorted(data), 
+            default=st.session_state.custom_terms,
+            max_selections=4,
+            key="custom_change", 
+            accept_new_options=False, 
+            on_change=cf.add_custom_terms,
+            label_visibility="collapsed"
+        )
+    st.divider()
+    st.subheader("Wiederherstellung")
+    st.download_button(
+        label="Begriffe sichern", 
+        icon=":material/download:", 
+        data= pd.DataFrame(st.session_state.bingo_terms).to_csv().encode("utf-8"),
+        file_name="barnabingo_card.csv",
+        on_click='ignore',
+    )
+    st.button(
+        label= "Begriffe hochladen",
+        icon = ":material/upload:",
+        on_click= pf.upload_terms,
+    )
+    st.divider()
+    st.subheader("Export")
+    st.download_button(
+            label="Karte als Bild speichern",
+            icon=":material/file_export:",
+            data= pf.export_image(st.session_state.fig),
+            file_name="card.png",
+        )
+    st.divider()
+    st.subheader("Neue Karte")
+    st.button("Neue Karte erstellen", icon=":material/refresh:", on_click=pf.refresh_check)
