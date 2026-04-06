@@ -79,4 +79,5 @@ def upload_terms():
         st.session_state.confirmed_refresh = True
         st.session_state.uploaded_terms = True
         st.rerun()
-        
+
+######################################################################################
