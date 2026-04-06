@@ -123,7 +123,7 @@ with st.sidebar:
         label="Begriffe sichern", 
         icon=":material/download:", 
         data= pd.DataFrame(st.session_state.bingo_terms).to_csv().encode("utf-8"),
-        file_name="barnabingo_card.csv",
+        file_name=f"barnabingo_card-{st.session_state.file_name}.csv",
         on_click='ignore',
     )
     st.button(
@@ -137,7 +137,7 @@ with st.sidebar:
             label="Karte als Bild speichern",
             icon=":material/file_export:",
             data= pf.export_image(st.session_state.fig),
-            file_name="card.png",
+            file_name=f"barnabingo-{st.session_state.file_name}.png",
         )
     st.divider()
     st.subheader("Neue Karte")
