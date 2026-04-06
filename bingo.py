@@ -43,7 +43,7 @@ if 'game' not in st.session_state:
     st.session_state.bingo_terms = cf.get_card_terms(grid_size, data, st.session_state.custom_terms)
     st.session_state.changed_ct = False
     st.session_state.stamp = pf.load_stamp("./data/mm_blue.png", 0.15)
-    st.session_state.bingo_card = str(os.path.join("Bingo_Card", f"{pf.load_start_time()}-Bingo.png"))
+    st.session_state.bingo_card = str(os.path.join("Bingo_Card", f"{pf.load_start_date()}-Bingo.png"))
     st.session_state.fig, st.session_state.ax = cf.create_bingo_card(grid_size, st.session_state.bingo_terms)
     st.session_state.confirmed_refresh = False
     st.session_state.last_click = 0
