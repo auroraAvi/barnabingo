@@ -6,8 +6,13 @@ import random
 from datetime import datetime
 import streamlit as st
 
-def get_card_terms(rowlen, terms):
-    bingo_terms = random.sample(terms, rowlen * rowlen -1)
+def get_card_terms(rowlen, terms, custom_terms):
+    if len(custom_terms) == 0:
+        bingo_terms = random.sample(terms, rowlen * rowlen -1)   
+    else:
+      random_terms = random.sample([i for i in terms if i not in custom_terms], rowlen * rowlen - (len(custom_terms)-1))
+      bingo_terms = random_terms + custom_terms
+      random.shuffle(bingo_terms)
     # Insert "Free" in the center
     bingo_terms.insert((rowlen * rowlen) // 2, "FREE")
     return bingo_terms
@@ -62,6 +67,7 @@ def split_term(word, max_chars):
         return word, 0
 
 #########################################################################################################
+@st.cache_resource
 def create_bingo_card(rowlen, bingo_terms):
     fig, ax = plt.subplots(figsize=(10,10))
     ax.set_xticks(np.arange(0, rowlen + 1))
@@ -97,7 +103,7 @@ def create_bingo_card(rowlen, bingo_terms):
     return fig, ax
 
 ###################################################################################################
-def update_bingo_card(fig, ax, xy, task, save_path):
+def update_bingo_card(fig, ax, xy, task):
     if task == "add":
         ax.add_artist(AnnotationBbox(st.session_state.stamp, xy, xycoords='data', frameon=False, box_alignment=(0.5,0.5)))
     elif task == "remove":
@@ -105,5 +111,12 @@ def update_bingo_card(fig, ax, xy, task, save_path):
         for present_xy in xy_stuff:
             if present_xy[1] == xy:
                 ax.artists[present_xy[0]].remove()
-    fig.savefig(save_path)
+    fig.savefig(st.session_state.bingo_card)
     return fig, ax
+
+###################################################################################################
+def add_custom_terms():
+    st.session_state.custom_terms = st.session_state.custom_change
+    for ct in st.session_state.custom_terms:
+        if ct not in st.session_state.bingo_terms:
+            st.session_state.confirmed_refresh = True

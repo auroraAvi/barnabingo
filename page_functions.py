@@ -3,6 +3,8 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 from datetime import datetime
+import time
+
 
 from matplotlib.offsetbox import OffsetImage
 import scipy.ndimage as ndimage
@@ -28,8 +30,11 @@ def load_stamp(file, zoom):
     arr_img = ndimage.rotate(arr_img, 45, reshape=True)
     return OffsetImage(arr_img, zoom=zoom)
 
-def load_start_time():
+def load_start_date():
     return datetime.today().strftime("%d-%m-%Y_%H-%M-%s")
+
+def load_start_time():
+    return time.time()
 ######################################################################################
 @st.dialog("Bist du dir sicher, dass du eine neue Karte erstellen möchtest?")
 def refresh_check():
@@ -80,4 +85,11 @@ def upload_terms():
         st.session_state.uploaded_terms = True
         st.rerun()
 
+######################################################################################
+def export_image(fig):
+    fig.patch.set_facecolor("white")
+    savepath = f"{st.session_state.bingo_card}_export.png"
+    fig.savefig(savepath)
+    fig.patch.set_facecolor("none")
+    return open(savepath, "rb")
 ######################################################################################
