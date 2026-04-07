@@ -40,10 +40,11 @@ if 'game' not in st.session_state:
     st.session_state.file_name = pf.load_start_date()
     st.session_state.start_time = pf.load_start_time()
     st.session_state.custom_terms = []
-    st.session_state.bingo_terms = cf.get_card_terms(grid_size, data, st.session_state.custom_terms)
+    st.session_state.excluded_terms = []
+    st.session_state.bingo_terms = cf.get_card_terms(grid_size, data, st.session_state.custom_terms, st.session_state.excluded_terms)
     st.session_state.changed_ct = False
     st.session_state.stamp = pf.load_stamp("./data/mm_blue.png", 0.15)
-    st.session_state.bingo_card = str(os.path.join("Bingo_Card", f"{pf.load_start_date()}-Bingo.png"))
+    st.session_state.bingo_card = str(os.path.join("Bingo_Card", f"{st.session_state.file_name}-Bingo.png"))
     st.session_state.fig, st.session_state.ax = cf.create_bingo_card(grid_size, st.session_state.bingo_terms)
     st.session_state.confirmed_refresh = False
     st.session_state.last_click = 0
@@ -57,7 +58,7 @@ if st.session_state.confirmed_refresh:
     if st.session_state.uploaded_terms:
         st.session_state.uploaded_terms = False
     else:
-        st.session_state.bingo_terms = cf.get_card_terms(grid_size, data, st.session_state.custom_terms)
+        st.session_state.bingo_terms = cf.get_card_terms(grid_size, data, st.session_state.custom_terms, st.session_state.excluded_terms)
     st.session_state.fig, st.session_state.ax = cf.create_bingo_card(grid_size, st.session_state.bingo_terms)
     st.session_state.confirmed_refresh = False
     st.session_state.game = pf.load_grid(grid_size)
@@ -105,9 +106,9 @@ if click:
 pf.check_bingo()
 
 with st.sidebar:
-    st.subheader("Spezielle Begriffe:")    
+    st.subheader("Begriffauswahl")    
     st.multiselect(
-            label="",
+            label="Gesetze Begriffe",
             placeholder = "Wähle bis zu 4 Begriffe aus", 
             options = sorted(data), 
             default=st.session_state.custom_terms,
@@ -115,7 +116,16 @@ with st.sidebar:
             key="custom_change", 
             accept_new_options=False, 
             on_change=cf.add_custom_terms,
-            label_visibility="collapsed"
+        )
+    st.multiselect(
+            label="Ausgeschlossene Begriffe",
+            placeholder = "Wähle bis zu 4 Begriffe aus", 
+            options = sorted(data), 
+            default=st.session_state.excluded_terms,
+            max_selections=4,
+            key="exclusion_change", 
+            accept_new_options=False, 
+            on_change=cf.remove_custom_terms,
         )
     st.divider()
     st.subheader("Wiederherstellung")
@@ -123,7 +133,7 @@ with st.sidebar:
         label="Begriffe sichern", 
         icon=":material/download:", 
         data= pd.DataFrame(st.session_state.bingo_terms).to_csv().encode("utf-8"),
-        file_name=f"barnabingo_card-{st.session_state.file_name}.csv",
+        file_name=f"barnabingo_card-{st.session_state.file_name.split("_")[0]}.csv",
         on_click='ignore',
     )
     st.button(
@@ -137,7 +147,7 @@ with st.sidebar:
             label="Karte als Bild speichern",
             icon=":material/file_export:",
             data= pf.export_image(st.session_state.fig),
-            file_name=f"barnabingo-{st.session_state.file_name}.png",
+            file_name=f"barnabingo-{st.session_state.file_name.split("_")[0]}.png",
         )
     st.divider()
     st.subheader("Neue Karte")

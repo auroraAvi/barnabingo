@@ -6,13 +6,20 @@ import random
 from datetime import datetime
 import streamlit as st
 
-def get_card_terms(rowlen, terms, custom_terms):
-    if len(custom_terms) == 0:
-        bingo_terms = random.sample(terms, rowlen * rowlen -1)   
+def get_card_terms(rowlen, terms, custom_terms, excluded_terms):
+    if (len(custom_terms) == 0) & (len(excluded_terms) == 0):
+        bingo_terms = random.sample(terms, rowlen * rowlen -1) 
     else:
-      random_terms = random.sample([i for i in terms if i not in custom_terms], rowlen * rowlen - (len(custom_terms)-1))
-      bingo_terms = random_terms + custom_terms
-      random.shuffle(bingo_terms)
+        if len(excluded_terms) != 0:
+            remaining_terms = [i for i in terms if i not in excluded_terms]
+        else:
+            remaining_terms = terms.copy()
+        if len(custom_terms) != 0:
+            random_terms = random.sample([i for i in remaining_terms if i not in custom_terms], rowlen * rowlen - (len(custom_terms)+1))
+            bingo_terms = random_terms + custom_terms
+        else:
+            bingo_terms = random.sample(remaining_terms, (rowlen * rowlen) - 1)
+        random.shuffle(bingo_terms)
     # Insert "Free" in the center
     bingo_terms.insert((rowlen * rowlen) // 2, "FREE")
     return bingo_terms
@@ -118,4 +125,10 @@ def add_custom_terms():
     st.session_state.custom_terms = st.session_state.custom_change
     for ct in st.session_state.custom_terms:
         if ct not in st.session_state.bingo_terms:
+            st.session_state.confirmed_refresh = True
+
+def remove_custom_terms():
+    st.session_state.excluded_terms = st.session_state.exclusion_change
+    for et in st.session_state.excluded_terms:
+        if et in st.session_state.bingo_terms:
             st.session_state.confirmed_refresh = True
