@@ -88,7 +88,7 @@ def upload_terms():
 ######################################################################################
 def export_image(fig):
     fig.patch.set_facecolor("white")
-    savepath = f"{st.session_state.bingo_card}_export.png"
+    savepath = f"{st.session_state.bingo_card.split(".")[0]}_export.png"
     fig.savefig(savepath)
     fig.patch.set_facecolor("none")
     return open(savepath, "rb")
