@@ -3,7 +3,6 @@ import matplotlib.pyplot as plt
 from matplotlib.offsetbox import AnnotationBbox
 import numpy as np
 import random
-from datetime import datetime
 import streamlit as st
 
 def get_card_terms(rowlen, terms, custom_terms, excluded_terms):

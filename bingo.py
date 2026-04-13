@@ -1,9 +1,7 @@
 import streamlit as st
 import numpy as np
-import matplotlib.pyplot as plt
 import os
 import pandas as pd
-import datetime
 
 import card_functions as cf
 import page_functions as pf
@@ -155,4 +153,9 @@ with st.sidebar:
         )
     st.divider()
     st.subheader("Neue Karte")
-    st.button("Neue Karte erstellen", icon=":material/refresh:", on_click=pf.refresh_check,type="primary")
+    st.button(
+        label = "Neue Karte erstellen", 
+        icon=":material/refresh:", 
+        on_click=pf.refresh_check,
+        type="primary"
+    )
