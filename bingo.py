@@ -71,7 +71,7 @@ if st.session_state.new_bingo:
     st.balloons()
     st.session_state.new_bingo = False
 #########################################################################################
-st.markdown("<h1 style='color:black;font-size:350%;'>BARNABINGO</h1>", unsafe_allow_html=True)
+st.markdown("<h1 style='color:#aa0000ff;font-size:350%;'>BARNABINGO</h1>", unsafe_allow_html=True)
 #########################################################################################
 click = streamlit_image_coordinates(st.session_state.bingo_card,  use_column_width=True)
 if click:
@@ -136,11 +136,13 @@ with st.sidebar:
         data= pd.DataFrame(st.session_state.bingo_terms).to_csv().encode("utf-8"),
         file_name=f"barnabingo_card-{st.session_state.file_name.split("_")[0]}.csv",
         on_click='ignore',
+        type="primary"
     )
     st.button(
         label= "Begriffe hochladen",
         icon = ":material/upload:",
         on_click= pf.upload_terms,
+        type="primary"
     )
     st.divider()
     st.subheader("Export")
@@ -149,7 +151,8 @@ with st.sidebar:
             icon=":material/file_export:",
             data= pf.export_image(st.session_state.fig),
             file_name=f"barnabingo-{st.session_state.file_name.split("_")[0]}.png",
+            type="primary"  
         )
     st.divider()
     st.subheader("Neue Karte")
-    st.button("Neue Karte erstellen", icon=":material/refresh:", on_click=pf.refresh_check)
+    st.button("Neue Karte erstellen", icon=":material/refresh:", on_click=pf.refresh_check,type="primary")

@@ -80,8 +80,10 @@ def create_bingo_card(rowlen, bingo_terms):
     ax.set_yticks(np.arange(0, rowlen + 1))
     ax.set_xticklabels([])
     ax.set_yticklabels([])
-    ax.grid(color='black', linewidth=1)
-    ax.tick_params(left=False, bottom=False, labelleft=False, labelbottom=False)
+    ax.grid(color='white', linewidth=1)
+    ax.tick_params(left=False, bottom=False, labelleft=False, labelbottom=False, color="white")
+    ax.spines[["top", "bottom", "left", "right"]].set_color("white")
+    
     fig.patch.set_facecolor('none')
     ax.set_facecolor((0, 0, 0, 0.001))
     for i, word in enumerate(bingo_terms):
@@ -100,6 +102,7 @@ def create_bingo_card(rowlen, bingo_terms):
             va='center',
             fontsize=fontsize,
             fontweight='normal' if word == 'FREE' else 'normal',
+            color="white",
             wrap=True
         )
     ax.add_artist(AnnotationBbox(st.session_state.stamp, (2.5, 2.5), xycoords='data', frameon=False, box_alignment=(0.5,0.5)))    
