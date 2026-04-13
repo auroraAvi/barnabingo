@@ -1,3 +1,14 @@
 [theme]
-primaryColor = "#530000"
-backgroundColor = "#b8d7ff"
+primaryColor = "#aa0000ff"
+backgroundColor = "black"
+secondaryBackgroundColor = "black"
+textColor= "#aa0000ff"
+borderColor = "#aa0000ff"
+
+[theme.sidebar]
+primaryColor="black" 
+secondaryBackgroundColor ="#aa0000ff" 
+backgroundColor = "#aa0000ff" 
+textColor="white"
+showWidgetBorder = true
+borderColor = "white"
