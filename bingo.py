@@ -35,6 +35,7 @@ data = pf.load_data(
     ]
 )
 os.makedirs("Bingo_Card", exist_ok=True)
+stamp = pf.load_stamp("./data/logo1.png", 0.6)
 
 if 'game' not in st.session_state:
     st.session_state.file_name = pf.load_start_date()
@@ -43,7 +44,7 @@ if 'game' not in st.session_state:
     st.session_state.excluded_terms = []
     st.session_state.bingo_terms = cf.get_card_terms(grid_size, data, st.session_state.custom_terms, st.session_state.excluded_terms)
     st.session_state.changed_ct = False
-    st.session_state.stamp = pf.load_stamp("./data/mm_blue.png", 0.15)
+    st.session_state.stamp = stamp
     st.session_state.bingo_card = str(os.path.join("Bingo_Card", f"{st.session_state.file_name}-Bingo.png"))
     st.session_state.fig, st.session_state.ax = cf.create_bingo_card(grid_size, st.session_state.bingo_terms)
     st.session_state.confirmed_refresh = False
@@ -54,7 +55,7 @@ if 'game' not in st.session_state:
     st.session_state.game = pf.load_grid(grid_size)
 
 if st.session_state.confirmed_refresh:
-    st.session_state.stamp = pf.load_stamp("./data/mm_blue.png", 0.15)
+    st.session_state.stamp = stamp
     if st.session_state.uploaded_terms:
         st.session_state.uploaded_terms = False
     else:
