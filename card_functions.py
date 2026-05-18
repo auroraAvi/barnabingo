@@ -21,7 +21,7 @@ def get_card_terms(rowlen, terms, custom_terms, excluded_terms):
         random.shuffle(bingo_terms)
     # Insert "Free" in the center
     bingo_data = terms.loc[terms.terms.isin(bingo_terms)].reset_index(drop=True)
-    bingo_data.loc[(rowlen*rowlen)/2] = ["FREE", None]
+    bingo_data.loc[(rowlen*rowlen)//2-0.5] = ["FREE", None]
     bingo_data = bingo_data.sort_index().reset_index(drop=True)
     return bingo_data
 
