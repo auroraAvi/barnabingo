@@ -138,7 +138,7 @@ with st.sidebar:
     st.download_button(
         label="Begriffe sichern", 
         icon=":material/download:", 
-        data= pd.DataFrame(st.session_state.bingo_terms).to_csv().encode("utf-8"),
+        data= st.session_state.bingo_terms.to_csv().encode("utf-8"),
         file_name=f"barnabingo_card-{st.session_state.file_name.split("_")[0]}.csv",
         on_click='ignore',
         type="primary"
