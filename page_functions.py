@@ -12,10 +12,10 @@ import scipy.ndimage as ndimage
 ######################################################################################
 @st.cache_data
 def load_data(files):
-    data = []
+    data = pd.DataFrame()
     for file in files:
-        curr_data = pd.read_csv(file, header=None)
-        data = data + [curr_data.iloc[i, 0] for i in curr_data.index]
+        curr_data = pd.read_csv(file, header=None, delimiter=";", names=["terms", "comments"])
+        data = pd.concat([data, curr_data])
     return data
 
 @st.cache_data

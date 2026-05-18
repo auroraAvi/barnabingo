@@ -44,7 +44,7 @@ if 'game' not in st.session_state:
     st.session_state.changed_ct = False
     st.session_state.stamp = stamp
     st.session_state.bingo_card = str(os.path.join("Bingo_Card", f"{st.session_state.file_name}-Bingo.png"))
-    st.session_state.fig, st.session_state.ax = cf.create_bingo_card(grid_size, st.session_state.bingo_terms)
+    st.session_state.fig, st.session_state.ax = cf.create_bingo_card(grid_size, st.session_state.bingo_terms["terms"])
     st.session_state.confirmed_refresh = False
     st.session_state.last_click = 0
     st.session_state.bingo_count = 0
@@ -58,7 +58,7 @@ if st.session_state.confirmed_refresh:
         st.session_state.uploaded_terms = False
     else:
         st.session_state.bingo_terms = cf.get_card_terms(grid_size, data, st.session_state.custom_terms, st.session_state.excluded_terms)
-    st.session_state.fig, st.session_state.ax = cf.create_bingo_card(grid_size, st.session_state.bingo_terms)
+    st.session_state.fig, st.session_state.ax = cf.create_bingo_card(grid_size, st.session_state.bingo_terms["terms"])
     st.session_state.confirmed_refresh = False
     st.session_state.game = pf.load_grid(grid_size)
     st.session_state.bingo_count = 0
@@ -104,12 +104,19 @@ if click:
 
 pf.check_bingo()
 
+st.divider()
+pd.options.display.chop_threshold=None
+comment_terms = st.session_state.bingo_terms.loc[st.session_state.bingo_terms.comments.notna()].sort_index(ascending=False)
+comment_terms.loc[:,"terms"] = "**" + comment_terms["terms"] + "**:" 
+st.table(comment_terms,border=False, hide_index=True, hide_header=True, width="stretch")
+
+
 with st.sidebar:
     st.subheader("Begriffauswahl")    
     st.multiselect(
             label="Gesetze Begriffe",
             placeholder = "Wähle bis zu 4 Begriffe aus", 
-            options = sorted(data), 
+            options = sorted(data["terms"]), 
             default=st.session_state.custom_terms,
             max_selections=4,
             key="custom_change", 
@@ -119,7 +126,7 @@ with st.sidebar:
     st.multiselect(
             label="Ausgeschlossene Begriffe",
             placeholder = "Wähle bis zu 4 Begriffe aus", 
-            options = sorted(data), 
+            options = sorted(data["terms"]), 
             default=st.session_state.excluded_terms,
             max_selections=4,
             key="exclusion_change", 

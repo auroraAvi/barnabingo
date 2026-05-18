@@ -7,12 +7,12 @@ import streamlit as st
 
 def get_card_terms(rowlen, terms, custom_terms, excluded_terms):
     if (len(custom_terms) == 0) & (len(excluded_terms) == 0):
-        bingo_terms = random.sample(terms, rowlen * rowlen -1) 
+        bingo_terms = random.sample(list(terms["terms"]), rowlen * rowlen -1) 
     else:
         if len(excluded_terms) != 0:
-            remaining_terms = [i for i in terms if i not in excluded_terms]
+            remaining_terms = [i for i in terms["terms"] if i not in excluded_terms]
         else:
-            remaining_terms = terms.copy()
+            remaining_terms = terms["terms"].copy()
         if len(custom_terms) != 0:
             random_terms = random.sample([i for i in remaining_terms if i not in custom_terms], rowlen * rowlen - (len(custom_terms)+1))
             bingo_terms = random_terms + custom_terms
@@ -20,8 +20,10 @@ def get_card_terms(rowlen, terms, custom_terms, excluded_terms):
             bingo_terms = random.sample(remaining_terms, (rowlen * rowlen) - 1)
         random.shuffle(bingo_terms)
     # Insert "Free" in the center
-    bingo_terms.insert((rowlen * rowlen) // 2, "FREE")
-    return bingo_terms
+    bingo_data = terms.loc[terms.terms.isin(bingo_terms)].reset_index(drop=True)
+    bingo_data.loc[(rowlen*rowlen)/2] = ["FREE", None]
+    bingo_data = bingo_data.sort_index().reset_index(drop=True)
+    return bingo_data
 
 ######################################################################
 def split_term(word, max_chars):
