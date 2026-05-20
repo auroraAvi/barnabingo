@@ -80,7 +80,6 @@ def upload_terms():
     )
     if file:
         st.session_state.bingo_terms = pd.read_csv(file, index_col=0)
-        st.write(st.session_state.bingo_terms)
         st.session_state.confirmed_refresh = True
         st.session_state.uploaded_terms = True
         st.rerun()
