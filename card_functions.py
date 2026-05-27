@@ -1,8 +1,8 @@
-import os
 import matplotlib.pyplot as plt
 from matplotlib.offsetbox import AnnotationBbox
 import numpy as np
 import random
+random.seed(random.random())
 import streamlit as st
 
 def get_card_terms(rowlen, terms, custom_terms, excluded_terms):

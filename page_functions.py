@@ -4,6 +4,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from datetime import datetime
 import time
+import os
 
 
 from matplotlib.offsetbox import OffsetImage
@@ -92,3 +93,9 @@ def export_image(fig):
     fig.patch.set_facecolor("none")
     return open(savepath, "rb")
 ######################################################################################
+def clear_card_store():
+    for filename in os.listdir("Bingo_Card"):
+        file_path = os.path.join("Bingo_Card", filename)
+        # Check if it is a file (not a subdirectory)
+        if (os.path.isfile(file_path)) & (file_path != st.session_state.bingo_card):
+            os.remove(file_path)

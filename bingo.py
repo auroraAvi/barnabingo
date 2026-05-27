@@ -52,6 +52,9 @@ if 'game' not in st.session_state:
     st.session_state.uploaded_terms = False
     st.session_state.game = pf.load_grid(grid_size)
 
+    pf.clear_card_store()
+    
+
 if st.session_state.confirmed_refresh:
     st.session_state.stamp = stamp
     if st.session_state.uploaded_terms:
@@ -107,8 +110,9 @@ pf.check_bingo()
 st.divider()
 pd.options.display.chop_threshold=None
 comment_terms = st.session_state.bingo_terms.loc[st.session_state.bingo_terms.comments.notna()].sort_index(ascending=False)
-comment_terms.loc[:,"terms"] = "**" + comment_terms["terms"] + "**:" 
-st.table(comment_terms,border=False, hide_index=True, hide_header=True, width="stretch")
+if len(comment_terms) > 0:
+    comment_terms.loc[:,"terms"] = "**" + comment_terms["terms"] + "**:" 
+    st.table(comment_terms,border=False, hide_index=True, hide_header=True, width="stretch")
 
 
 with st.sidebar:
