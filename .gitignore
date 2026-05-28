@@ -419,3 +419,4 @@ FodyWeavers.xsd
 
 Bingo_Card/*
 .streamlit/secrets.toml
+testing/
