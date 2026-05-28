@@ -37,7 +37,7 @@ stamp = pf.load_stamp("./data/logo1.png", 0.6)
 
 if 'game' not in st.session_state:
     st.session_state.file_name = pf.load_start_date()
-    st.session_state.start_time = pf.load_start_time()
+    # st.session_state.start_time = pf.load_start_time()
     st.session_state.custom_terms = []
     st.session_state.excluded_terms = []
     st.session_state.bingo_terms = cf.get_card_terms(grid_size, data, st.session_state.custom_terms, st.session_state.excluded_terms)
