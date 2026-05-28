@@ -21,7 +21,7 @@
         **export_image(fig) -> BufferedReader[_BufferedReaderStream]**
             exports current bingo card as png image.
         **clear_card_store() -> None**
-            description
+            deletes all saved image files that are not currently relevant.
 
     Requirements
     ------------
