@@ -8,12 +8,12 @@ Functions
         splits terms that exceed the maximum length to fit in field.
     **create_bingo_card(rowlen, bingo_terms) -> tuple[Figure, Axis]**
         creates the bingo card figure to be displayed as an image.
-    **update_bingo_card -> output**
-        description
-    **add_custom_terms -> output**
-        description
-    **remove_custom_terms -> output**
-        description
+    **update_bingo_card(fig, ax, xy, task) -> tuple[Figure, Axis]**
+        adds/removes stamp after click.
+    **add_custom_terms() -> None**
+        adds term to list of customly added terms.
+    **remove_custom_terms() -> None**
+        adds term to list of excluded terms.
 
 Requirements
 ------------
@@ -27,13 +27,17 @@ Requirements
 ## IMPORTS
 import matplotlib.pyplot as plt
 from matplotlib.offsetbox import AnnotationBbox
+import streamlit as st
 import numpy as np
 import random
 random.seed(random.random())
-import streamlit as st
-import pandas as pd
+
+from typing import Literal
 from matplotlib.figure import Figure
 from matplotlib.axis import Axis
+import pandas as pd
+
+
 ##########################################################################################################################################################
 def get_card_terms(rowlen:int, terms:pd.DataFrame, custom_terms:list[str], excluded_terms:list[str]) -> pd.DataFrame:
     """Get set of terms to build bingo card with (entirely random or with custom terms added/removed).
@@ -77,6 +81,7 @@ def get_card_terms(rowlen:int, terms:pd.DataFrame, custom_terms:list[str], exclu
     # Reindex to keep order after insertion
     bingo_data = bingo_data.sort_index().reset_index(drop=True)
     return bingo_data
+
 
 ##########################################################################################################################################################
 def split_term(word:str, max_chars:int) -> tuple[str, int] :
@@ -164,6 +169,7 @@ def split_term(word:str, max_chars:int) -> tuple[str, int] :
         # Return term as is
         return word, 0
 
+
 ##########################################################################################################################################################
 def create_bingo_card(rowlen:int, bingo_terms:pd.Series) -> tuple[Figure, Axis]:
     """Create bingo card figure and save file to be displayed.
@@ -225,72 +231,61 @@ def create_bingo_card(rowlen:int, bingo_terms:pd.Series) -> tuple[Figure, Axis]:
     fig.savefig(st.session_state.bingo_card)
     return fig, ax
 
+
 ##########################################################################################################################################################
-def update_bingo_card(fig, ax, xy, task):
-    """ Explanation.
+def update_bingo_card(fig:Figure, ax:Axis, xy:tuple[float, float], task:Literal['add','remove']) -> tuple[Figure, Axis]:
+    """Update bingo card after latest click (adding/removing stamp).
 
     Arguments
     ---------
-        arg (data-type, optionality) : description (default=)
-        arg (data-type, optionality) : description (default=)
-        arg (data-type, optionality) : description (default=)
-        arg (data-type, optionality) : description (default=)
+        fig     (matplotlib.Figure)     : plot figure of current bingo card
+        ax      (matplotlib.Axis)       : plot axes of current bingo card
+        xy      (tuple[float, float])   : center coordinates for relevant stamp
+        task    (str["add"|"remove"])   : task to perform ("add" or "remove")
 
     Returns
     -------
-        out (data-type|data-type , optionality) : description
-        out (data-type|data-type , optionality) : description
-        out (data-type|data-type , optionality) : description
+        out (matplotlib.Figure) : updated plot figure
+        out (matplotlib.Axis)   : updated plot axis
     """
     if task == "add":
+        # Add stamp to plot axis
         ax.add_artist(AnnotationBbox(st.session_state.stamp, xy, xycoords='data', frameon=False, box_alignment=(0.5,0.5)))
     elif task == "remove":
+        # Get all present artists
         xy_stuff = [[i, artist.xy] for i, artist in enumerate(ax.artists)]
         for present_xy in xy_stuff:
+            # Get relevant artist
             if present_xy[1] == xy:
+                # Remove artist
                 ax.artists[present_xy[0]].remove()
+    # Save updated plot to file
     fig.savefig(st.session_state.bingo_card)
     return fig, ax
 
+
 ##########################################################################################################################################################
-def add_custom_terms():
-    """ Explanation.
-
-    Arguments
-    ---------
-        arg (data-type, optionality) : description (default=)
-        arg (data-type, optionality) : description (default=)
-        arg (data-type, optionality) : description (default=)
-        arg (data-type, optionality) : description (default=)
-
-    Returns
-    -------
-        out (data-type|data-type , optionality) : description
-        out (data-type|data-type , optionality) : description
-        out (data-type|data-type , optionality) : description
-    """
+def add_custom_terms() -> None:
+    """Add term to list of customly added terms."""
+    # Set session state with new list
     st.session_state.custom_terms = st.session_state.custom_change
     for ct in st.session_state.custom_terms:
+        # If term not in current card terms
         if ct not in st.session_state.bingo_terms:
+            # Refresh card
             st.session_state.confirmed_refresh = True
+
+
 ##########################################################################################################################################################
-def remove_custom_terms():
-    """ Explanation.
-
-    Arguments
-    ---------
-        arg (data-type, optionality) : description (default=)
-        arg (data-type, optionality) : description (default=)
-        arg (data-type, optionality) : description (default=)
-        arg (data-type, optionality) : description (default=)
-
-    Returns
-    -------
-        out (data-type|data-type , optionality) : description
-        out (data-type|data-type , optionality) : description
-        out (data-type|data-type , optionality) : description
-    """
+def remove_custom_terms() -> None:
+    """Add term to list of excluded terms."""
+    # Set session state with new list
     st.session_state.excluded_terms = st.session_state.exclusion_change
     for et in st.session_state.excluded_terms:
+        # If term in current card terms
         if et in st.session_state.bingo_terms:
+            # Refresh card
             st.session_state.confirmed_refresh = True
+
+
+##########################################################################################################################################################
