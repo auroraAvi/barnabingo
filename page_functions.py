@@ -68,6 +68,7 @@ def load_data(files:list[str]) -> pd.DataFrame:
         curr_data = pd.read_csv(file, header=None, delimiter=";", names=["terms", "comments"])
         # Add current data to overall DF
         data = pd.concat([data, curr_data])
+    data["custom"] = 0
     return data
 
 
@@ -220,7 +221,7 @@ def export_image(fig:Figure):
     # Set background colour black
     fig.patch.set_facecolor("black")
     # Initialise file name for export
-    savepath = f"{st.session_state.bingo_card.split(".")[0]}_export.png"
+    savepath = f"{st.session_state.bingo_card}_export.png"
     # Save figure as image
     fig.savefig(savepath)
     # Revert fig background
@@ -231,13 +232,47 @@ def export_image(fig:Figure):
 ##########################################################################################################################################################
 def clear_card_store() -> None:
     """Delete all saved image files that are not currently relevant."""
-    for filename in os.listdir("Bingo_Card"):
-        # Get file in directory
-        file_path = os.path.join("Bingo_Card", filename)
-        # Check if it is a file (not a subdirectory & not the currently relevant one
-        if (os.path.isfile(file_path)) & (file_path != st.session_state.bingo_card):
-            # Delete file
-            os.remove(file_path)
+    cards = sorted(os.listdir("Bingo_Card"))
+    images = [c for c in cards if (st.session_state.userID in c) & ("png" in c)]
+    terms = [c for c in cards if (st.session_state.userID in c) & ("png" not in c)]
+    if len(images) > 2:
+        for filename in images + terms:
+            # Get file in directory
+            file_path = os.path.join("Bingo_Card", filename)
+            # Check if it is a file (not a subdirectory & not the currently relevant one
+            if (os.path.isfile(file_path)) & (st.session_state.bingo_card not in file_path) & (st.session_state.last_card not in file_path):
+                os.remove(file_path)
 
 
 ##########################################################################################################################################################
+def get_last_card():
+    cards = sorted(os.listdir("Bingo_Card"))
+    terms = [c for c in cards if (st.session_state.userID in c) & ("csv" in c)]
+    if len(terms) > 1:
+        return str(os.path.join("Bingo_Card",terms[-2].split(".csv")[0]))
+    elif len(terms) > 0:
+        return str(os.path.join("Bingo_Card",terms[-1].split(".csv")[0]))
+    else:
+        return None
+
+
+##########################################################################################################################################################
+def set_last_card():
+    st.session_state.set_last = True
+    st.session_state.confirmed_refresh = True
+
+
+##########################################################################################################################################################
+@st.dialog("Login :)", width="small", dismissible=False, icon=None)
+def test_login():
+    st.session_state.userID = st.multiselect(
+        label="User",
+        placeholder = "Wer bist du???", 
+        options = ["Mama & Papa", "Maria & Ansgar"], 
+        max_selections=1, 
+        accept_new_options=False,
+        label_visibility="collapsed",
+    )
+    if st.session_state.userID:
+        st.session_state.userID = st.session_state.userID[0].replace(" ", "_")
+        st.rerun()

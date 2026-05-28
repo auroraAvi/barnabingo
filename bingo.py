@@ -40,165 +40,197 @@ os.makedirs("Bingo_Card", exist_ok=True)
 # Initialise stamp artist
 stamp = pf.load_stamp("./data/logo1.png", 0.6)
 
-# First run
-if 'game' not in st.session_state:
-    st.session_state.file_name = pf.load_start_date() # date/time to use for file naming
-    # st.session_state.start_time = pf.load_start_time()
-    st.session_state.custom_terms = [] # Added terms
-    st.session_state.excluded_terms = [] # Excluded terms
-    # Terms for current card
-    st.session_state.bingo_terms = cf.get_card_terms(grid_size, data, st.session_state.custom_terms, st.session_state.excluded_terms)
-    st.session_state.changed_ct = False # Change in card terms
-    st.session_state.stamp = stamp # Bingo stamp
-    # File path for current card
-    st.session_state.bingo_card = str(os.path.join("Bingo_Card", f"{st.session_state.file_name}-Bingo.png"))
-    # Create current card
-    st.session_state.fig, st.session_state.ax = cf.create_bingo_card(grid_size, st.session_state.bingo_terms["terms"])
-    st.session_state.confirmed_refresh = False # Refresh check
-    st.session_state.last_click = 0 # Time of last click
-    st.session_state.bingo_count = 0 # Bingo counter
-    st.session_state.new_bingo = False # New bingo check
-    st.session_state.uploaded_terms = False # Term upload check
-    st.session_state.game = pf.load_grid(grid_size) # Checked/unchecked fields as logical array
+if "userID" not in st.session_state:
+    pf.test_login()
+else:
+    # First run
+    if 'game' not in st.session_state:
+        # File path for current card
+        st.session_state.bingo_card = str(os.path.join("Bingo_Card", f"{pf.load_start_date()}-Bingo_{st.session_state.userID}")) 
+        # st.session_state.start_time = pf.load_start_time()
+        st.session_state.custom_terms = [] # Added terms
+        st.session_state.excluded_terms = [] # Excluded terms
+        st.session_state.customisation = False
+        # Terms for current card
+        st.session_state.bingo_terms  = cf.get_card_terms(grid_size, data, st.session_state.custom_terms, st.session_state.excluded_terms)
+        st.session_state.stamp = stamp # Bingo stamp
+        # Create current card
+        st.session_state.fig, st.session_state.ax = cf.create_bingo_card(grid_size, st.session_state.bingo_terms["terms"])
+        st.session_state.confirmed_refresh = False # Refresh check
+        st.session_state.last_click = 0 # Time of last click
+        st.session_state.bingo_count = 0 # Bingo counter
+        st.session_state.new_bingo = False # New bingo check
+        st.session_state.uploaded_terms = False # Term upload check
+        st.session_state.game = pf.load_grid(grid_size) # Checked/unchecked fields as logical array
+        
+        st.session_state.set_last = False
+        st.session_state.last_card = pf.get_last_card()
+        pf.clear_card_store()
 
-    # pf.clear_card_store()
-    
-
-if st.session_state.confirmed_refresh:
-    st.session_state.stamp = stamp # Bingo stamp
-    # Term upload check
-    if st.session_state.uploaded_terms:
-        # Terms set by upload
-        st.session_state.uploaded_terms = False
-    else:
-        # Randomply sample new terms
-        st.session_state.bingo_terms = cf.get_card_terms(grid_size, data, st.session_state.custom_terms, st.session_state.excluded_terms)
-    # Create current card
-    st.session_state.fig, st.session_state.ax = cf.create_bingo_card(grid_size, st.session_state.bingo_terms["terms"])
-    st.session_state.confirmed_refresh = False # Refresh check
-    st.session_state.game = pf.load_grid(grid_size) # Checked/unchecked fields as logical array
-    st.session_state.bingo_count = 0 # Bingo counter
-    st.session_state.new_bingo = False # New bingo check
-    st.rerun()
-
-# Bingo reaction
-if st.session_state.new_bingo:
-    st.balloons()
-    st.session_state.new_bingo = False
-##########################################################################################################################################################
-# Title
-st.markdown("<h1 style='color:#aa0000ff;font-size:350%;'>BARNABINGO</h1>", unsafe_allow_html=True)
-##########################################################################################################################################################
-### BINGO CARD
-# Detect click on image
-click = streamlit_image_coordinates(st.session_state.bingo_card,  use_column_width=True)
-if click:
-    # New click
-    if click["unix_time"] > st.session_state.last_click:
-        # Update click time
-        st.session_state.last_click = click["unix_time"]
-        # Convert coordinates to grid slots
-        click_x = [
-            4 if click["x"] >= click["width"]/(125/99) else 
-            3 if click["x"] >= click["width"]/(500/299) else 
-            2 if click["x"] >= click["width"]/(250/101) else 
-            1 if click["x"] >= click["width"]/(1000/209) else 
-            0
-        ]
-        click_y = [
-            0 if click["y"] >= click["height"]/(125/99) else 
-            1 if click["y"] >= click["height"]/(500/299) else 
-            2 if click["y"] >= click["height"]/(250/101) else 
-            3 if click["y"] >= click["height"]/(1000/209) else 
-            4
-        ]
-        # De-Select grid slot
-        if st.session_state.game[click_x, click_y] == 1:
-            st.session_state.fig, st.session_state.ax = cf.update_bingo_card(st.session_state.fig, st.session_state.ax, (click_x[0]+0.5, click_y[0]+0.5), "remove")
-            st.session_state.game[click_x, click_y] = 0
+    if st.session_state.confirmed_refresh:
+        st.session_state.confirmed_refresh = False  # Refresh check
+        
+        st.session_state.stamp = stamp # Bingo stamp
+        
+        if st.session_state.set_last == True:
+            st.session_state.set_last = False
+            curr_card = st.session_state.bingo_card
+            st.session_state.bingo_card = st.session_state.last_card
+            st.session_state.last_card = curr_card
+            st.session_state.bingo_terms = pd.read_csv(st.session_state.bingo_card + ".csv", index_col=0)
+            st.session_state.custom_change = list(st.session_state.bingo_terms.loc[st.session_state.bingo_terms.custom == 1, "terms"])
+            st.session_state.custom_terms = st.session_state.custom_change
+            st.session_state.exclusion_change = list(st.session_state.bingo_terms.loc[st.session_state.bingo_terms.custom == -1, "terms"])
+            st.session_state.excluded_terms = st.session_state.exclusion_change
+        elif st.session_state.customisation == True:
+            st.session_state.customisation = False
+            st.session_state.bingo_terms = cf.get_card_terms(grid_size, data, st.session_state.custom_terms, st.session_state.excluded_terms)
         else:
-            # Select grid slot
-            st.session_state.fig, st.session_state.ax = cf.update_bingo_card(st.session_state.fig,st.session_state.ax, (click_x[0]+0.5, click_y[0]+0.5), "add")
-            st.session_state.game[click_x, click_y] = 1
+            st.session_state.last_card = st.session_state.bingo_card
+            st.session_state.bingo_card = str(os.path.join("Bingo_Card", f"{pf.load_start_date()}-Bingo_{st.session_state.userID}")) 
+            if st.session_state.uploaded_terms == True:
+                st.session_state.uploaded_terms = False
+                st.session_state.bingo_terms.to_csv(f"{st.session_state.bingo_card}.csv")
+                st.session_state.custom_change = list(st.session_state.bingo_terms.loc[st.session_state.bingo_terms.custom == 1, "terms"])
+                st.session_state.custom_terms = st.session_state.custom_change
+                st.session_state.exclusion_change = list(st.session_state.bingo_terms.loc[st.session_state.bingo_terms.custom == -1, "terms"])
+                st.session_state.excluded_terms = st.session_state.exclusion_change
+            else:
+                st.session_state.bingo_terms = cf.get_card_terms(grid_size, data, st.session_state.custom_terms, st.session_state.excluded_terms)
+        
+        # Create current card
+        st.session_state.fig, st.session_state.ax = cf.create_bingo_card(grid_size, st.session_state.bingo_terms["terms"])
+        pf.clear_card_store()
+        
+        st.session_state.game = pf.load_grid(grid_size) # Checked/unchecked fields as logical array
+        st.session_state.bingo_count = 0 # Bingo counter
+        st.session_state.new_bingo = False # New bingo check
         st.rerun()
-# Check configuration of checked/unchecked fields
-pf.check_bingo()
+
+    # Bingo reaction
+    if st.session_state.new_bingo:
+        st.balloons()
+        st.session_state.new_bingo = False
+    ##########################################################################################################################################################
+    # Title
+    st.markdown(f"<h1 style='color:#aa0000ff;font-size:350%;'>BARNABINGO - {st.session_state.userID.replace("_", " ")} </h1>", unsafe_allow_html=True)
+    ##########################################################################################################################################################
+    ### BINGO CARD
+    # Detect click on image
+    click = streamlit_image_coordinates(st.session_state.bingo_card + ".png",  use_column_width=True)
+    if click:
+        # New click
+        if click["unix_time"] > st.session_state.last_click:
+            # Update click time
+            st.session_state.last_click = click["unix_time"]
+            # Convert coordinates to grid slots
+            click_x = [
+                4 if click["x"] >= click["width"]/(125/99) else 
+                3 if click["x"] >= click["width"]/(500/299) else 
+                2 if click["x"] >= click["width"]/(250/101) else 
+                1 if click["x"] >= click["width"]/(1000/209) else 
+                0
+            ]
+            click_y = [
+                0 if click["y"] >= click["height"]/(125/99) else 
+                1 if click["y"] >= click["height"]/(500/299) else 
+                2 if click["y"] >= click["height"]/(250/101) else 
+                3 if click["y"] >= click["height"]/(1000/209) else 
+                4
+            ]
+            # De-Select grid slot
+            if st.session_state.game[click_x, click_y] == 1:
+                st.session_state.fig, st.session_state.ax = cf.update_bingo_card(st.session_state.fig, st.session_state.ax, (click_x[0]+0.5, click_y[0]+0.5), "remove")
+                st.session_state.game[click_x, click_y] = 0
+            else:
+                # Select grid slot
+                st.session_state.fig, st.session_state.ax = cf.update_bingo_card(st.session_state.fig,st.session_state.ax, (click_x[0]+0.5, click_y[0]+0.5), "add")
+                st.session_state.game[click_x, click_y] = 1
+            st.rerun()
+    # Check configuration of checked/unchecked fields
+    pf.check_bingo()
 
 
-##########################################################################################################################################################
-### TERM EXPLANATIONS
-st.divider()
-# Display everything
-pd.options.display.chop_threshold=None
-# Get terms that have explanations on current card
-comment_terms = st.session_state.bingo_terms.loc[st.session_state.bingo_terms.comments.notna()].sort_index(ascending=False)
-# Display as table
-if len(comment_terms) > 0:
-    # Format terms
-    comment_terms.loc[:,"terms"] = "**" + comment_terms["terms"] + "**:" 
-    st.table(comment_terms,border=False, hide_index=True, hide_header=True, width="stretch")
-
-
-##########################################################################################################################################################
-### SIDEBAR
-with st.sidebar:
-    st.subheader("Begriffauswahl")  
-    # Included terms  
-    st.multiselect(
-            label="Gesetze Begriffe",
-            placeholder = "Wähle bis zu 4 Begriffe aus", 
-            options = sorted(data["terms"]), 
-            default=st.session_state.custom_terms,
-            max_selections=4,
-            key="custom_change", 
-            accept_new_options=False, 
-            on_change=cf.add_custom_terms,
-        )
-    # Excluded terms
-    st.multiselect(
-            label="Ausgeschlossene Begriffe",
-            placeholder = "Wähle bis zu 4 Begriffe aus", 
-            options = sorted(data["terms"]), 
-            default=st.session_state.excluded_terms,
-            max_selections=4,
-            key="exclusion_change", 
-            accept_new_options=False, 
-            on_change=cf.remove_custom_terms,
-        )
+    ##########################################################################################################################################################
+    ### TERM EXPLANATIONS
     st.divider()
-    st.subheader("Wiederherstellung")
-    # Save terms as csv
-    st.download_button(
-        label="Begriffe sichern", 
-        icon=":material/download:", 
-        data= st.session_state.bingo_terms.to_csv().encode("utf-8"),
-        file_name=f"barnabingo_card-{st.session_state.file_name.split("_")[0]}.csv",
-        on_click='ignore',
-        type="primary"
-    )
-    # Upload term csv
-    st.button(
-        label= "Begriffe hochladen",
-        icon = ":material/upload:",
-        on_click= pf.upload_terms,
-        type="primary"
-    )
-    st.divider()
-    st.subheader("Export")
-    # Export current card as png
-    st.download_button(
-            label="Karte als Bild speichern",
-            icon=":material/file_export:",
-            data= pf.export_image(st.session_state.fig),
-            file_name=f"barnabingo-{st.session_state.file_name.split("_")[0]}.png",
-            type="primary"  
+    # Display everything
+    pd.options.display.chop_threshold=None
+    # Get terms that have explanations on current card
+    comment_terms = st.session_state.bingo_terms.loc[st.session_state.bingo_terms.comments.notna(), ["terms", "comments"]].sort_index(ascending=False)
+    # Display as table
+    if len(comment_terms) > 0:
+        # Format terms
+        comment_terms.loc[:,"terms"] = "**" + comment_terms["terms"] + "**:" 
+        st.table(comment_terms,border=False, hide_index=True, hide_header=True, width="stretch")
+
+
+    ##########################################################################################################################################################
+    ### SIDEBAR
+    with st.sidebar:
+        st.subheader("Begriffauswahl")  
+        # Included terms  
+        st.multiselect(
+                label="Gesetze Begriffe",
+                placeholder = "Wähle bis zu 4 Begriffe aus", 
+                options = sorted(data["terms"]), 
+                default=st.session_state.custom_terms,
+                max_selections=4,
+                key="custom_change", 
+                accept_new_options=False, 
+                on_change=cf.add_custom_terms,
+            )
+        # Excluded terms
+        st.multiselect(
+                label="Ausgeschlossene Begriffe",
+                placeholder = "Wähle bis zu 4 Begriffe aus", 
+                options = sorted(data["terms"]), 
+                default=st.session_state.excluded_terms,
+                max_selections=4,
+                key="exclusion_change", 
+                accept_new_options=False, 
+                on_change=cf.remove_custom_terms,
+            )
+        st.divider()
+        st.subheader("Wiederherstellung")
+        st.button(
+            label = "Letzte Karte wiederherstellen", 
+            icon=":material/refresh:", 
+            on_click=pf.set_last_card,
+            type="primary"
         )
-    st.divider()
-    # Get new card
-    st.subheader("Neue Karte")
-    st.button(
-        label = "Neue Karte erstellen", 
-        icon=":material/refresh:", 
-        on_click=pf.refresh_check,
-        type="primary"
-    )
+        # Save terms as csv
+        st.download_button(
+            label="Begriffe sichern", 
+            icon=":material/download:", 
+            data= st.session_state.bingo_terms.to_csv().encode("utf-8"),
+            file_name=f"barnabingo_card-{st.session_state.bingo_card.split("/")[1].split("_")[0]}.csv",
+            on_click='ignore',
+            type="primary"
+        )
+        # Upload term csv
+        st.button(
+            label= "Begriffe hochladen",
+            icon = ":material/upload:",
+            on_click= pf.upload_terms,
+            type="primary"
+        )
+        st.divider()
+        st.subheader("Export")
+        # Export current card as png
+        st.download_button(
+                label="Karte als Bild speichern",
+                icon=":material/file_export:",
+                data= pf.export_image(st.session_state.fig),
+                file_name=f"barnabingo-{st.session_state.bingo_card.split("/")[1].split("_")[0]}.png",
+                type="primary"  
+            )
+        st.divider()
+        # Get new card
+        st.subheader("Neue Karte")
+        st.button(
+            label = "Neue Karte erstellen", 
+            icon=":material/refresh:", 
+            on_click=pf.refresh_check,
+            type="primary"
+        )

@@ -53,12 +53,11 @@ def get_card_terms(rowlen:int, terms:pd.DataFrame, custom_terms:list[str], exclu
     -------
         bingo_data      (pandas.DataFrame)  : terms chosen for the current card
     """
-    
     if (len(custom_terms) == 0) & (len(excluded_terms) == 0):
         # Randomly samle all terms (-1 for free field) if no customisation has been defined
         bingo_terms = random.sample(list(terms["terms"]), rowlen * rowlen -1) 
     else:
-        if len(excluded_terms) != 0:
+        if len(excluded_terms) > 0:
             # Filter out unwanted terms from overall pool
             remaining_terms = [i for i in terms["terms"] if i not in excluded_terms]
         else:
@@ -77,9 +76,13 @@ def get_card_terms(rowlen:int, terms:pd.DataFrame, custom_terms:list[str], exclu
     # Get terms and descriptions for selected terms
     bingo_data = terms.loc[terms.terms.isin(bingo_terms)].reset_index(drop=True)
     # Insert "Free" in the center
-    bingo_data.loc[(rowlen*rowlen)//2-0.5] = ["FREE", None]
+    bingo_data.loc[(rowlen*rowlen)//2-0.5] = ["FREE", None, 0]
     # Reindex to keep order after insertion
     bingo_data = bingo_data.sort_index().reset_index(drop=True)
+    bingo_data.loc[bingo_data.terms.isin(custom_terms), "custom"] = 1
+    bingo_data.loc[bingo_data.terms.isin(excluded_terms), "custom"] = -1
+    bingo_data.loc[~bingo_data.terms.isin(excluded_terms +custom_terms), "custom"] = 0
+    bingo_data.to_csv(f"{st.session_state.bingo_card}.csv")
     return bingo_data
 
 
@@ -228,7 +231,7 @@ def create_bingo_card(rowlen:int, bingo_terms:pd.Series) -> tuple[Figure, Axis]:
     # Set layout 
     plt.tight_layout()
     # Save figure as image file
-    fig.savefig(st.session_state.bingo_card)
+    fig.savefig(st.session_state.bingo_card + ".png")
     return fig, ax
 
 
@@ -260,7 +263,7 @@ def update_bingo_card(fig:Figure, ax:Axis, xy:tuple[float, float], task:Literal[
                 # Remove artist
                 ax.artists[present_xy[0]].remove()
     # Save updated plot to file
-    fig.savefig(st.session_state.bingo_card)
+    fig.savefig(st.session_state.bingo_card + ".png")
     return fig, ax
 
 
@@ -271,9 +274,10 @@ def add_custom_terms() -> None:
     st.session_state.custom_terms = st.session_state.custom_change
     for ct in st.session_state.custom_terms:
         # If term not in current card terms
-        if ct not in st.session_state.bingo_terms:
+        if ct not in list(st.session_state.bingo_terms["terms"]):
             # Refresh card
             st.session_state.confirmed_refresh = True
+            st.session_state.customisation = True
 
 
 ##########################################################################################################################################################
@@ -283,9 +287,10 @@ def remove_custom_terms() -> None:
     st.session_state.excluded_terms = st.session_state.exclusion_change
     for et in st.session_state.excluded_terms:
         # If term in current card terms
-        if et in st.session_state.bingo_terms:
+        if et in list(st.session_state.bingo_terms["terms"]):
             # Refresh card
             st.session_state.confirmed_refresh = True
+            st.session_state.customisation = True
 
 
 ##########################################################################################################################################################
