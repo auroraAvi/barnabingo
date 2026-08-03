@@ -32,7 +32,8 @@ data = pf.load_data(
         "./data/meta.csv",
         "./data/orte.csv",
         "./data/personen.csv",
-        "./data/tatsachen.csv"
+        "./data/tatsachen.csv",
+        "./data/tom.csv"
     ]
 )
 # Initialise directory to save images to
@@ -63,20 +64,18 @@ else:
         st.session_state.uploaded_terms = False # Term upload check
         st.session_state.game = pf.load_grid(grid_size) # Checked/unchecked fields as logical array
         
-        st.session_state.set_last = False
-        st.session_state.last_card = pf.get_last_card()
+        st.session_state.set_prev = False
         pf.clear_card_store()
+        st.session_state.prev_cards = pf.get_previous_cards()
 
     if st.session_state.confirmed_refresh:
         st.session_state.confirmed_refresh = False  # Refresh check
         
         st.session_state.stamp = stamp # Bingo stamp
         
-        if st.session_state.set_last == True:
-            st.session_state.set_last = False
-            curr_card = st.session_state.bingo_card
-            st.session_state.bingo_card = st.session_state.last_card
-            st.session_state.last_card = curr_card
+        if st.session_state.set_prev == True:
+            st.session_state.set_prev = False
+            st.session_state.bingo_card = str(os.path.join("Bingo_Card", st.session_state.active_card))
             st.session_state.bingo_terms = pd.read_csv(st.session_state.bingo_card + ".csv", index_col=0)
             st.session_state.custom_change = list(st.session_state.bingo_terms.loc[st.session_state.bingo_terms.custom == 1, "terms"])
             st.session_state.custom_terms = st.session_state.custom_change
@@ -86,8 +85,8 @@ else:
             st.session_state.customisation = False
             st.session_state.bingo_terms = cf.get_card_terms(grid_size, data, st.session_state.custom_terms, st.session_state.excluded_terms)
         else:
-            st.session_state.last_card = st.session_state.bingo_card
             st.session_state.bingo_card = str(os.path.join("Bingo_Card", f"{pf.load_start_date()}-Bingo_{st.session_state.userID}")) 
+            st.session_state.active_card = f"{st.session_state.bingo_card}.csv"
             if st.session_state.uploaded_terms == True:
                 st.session_state.uploaded_terms = False
                 st.session_state.bingo_terms.to_csv(f"{st.session_state.bingo_card}.csv")
@@ -100,17 +99,18 @@ else:
         
         # Create current card
         st.session_state.fig, st.session_state.ax = cf.create_bingo_card(grid_size, st.session_state.bingo_terms["terms"])
-        pf.clear_card_store()
         
         st.session_state.game = pf.load_grid(grid_size) # Checked/unchecked fields as logical array
         st.session_state.bingo_count = 0 # Bingo counter
         st.session_state.new_bingo = False # New bingo check
+        st.session_state.prev_cards = pf.get_previous_cards()
         st.rerun()
 
     # Bingo reaction
     if st.session_state.new_bingo:
         st.balloons()
         st.session_state.new_bingo = False
+
     ##########################################################################################################################################################
     # Title
     st.markdown(f"<h1 style='color:#aa0000ff;font-size:350%;'>BARNABINGO - {st.session_state.userID.replace("_", " ")} </h1>", unsafe_allow_html=True)
@@ -149,8 +149,6 @@ else:
             st.rerun()
     # Check configuration of checked/unchecked fields
     pf.check_bingo()
-
-
     ##########################################################################################################################################################
     ### TERM EXPLANATIONS
     st.divider()
@@ -193,11 +191,14 @@ else:
             )
         st.divider()
         st.subheader("Wiederherstellung")
-        st.button(
-            label = "Letzte Karte wiederherstellen", 
-            icon=":material/refresh:", 
-            on_click=pf.set_last_card,
-            type="primary"
+        st.selectbox(
+            label="aktive Karte",
+            options=sorted(st.session_state.prev_cards, reverse=True),
+            placeholder="",
+            index=0,
+            key="active_card",
+            on_change=pf.set_previous_card,
+            persist_state="session"
         )
         # Save terms as csv
         st.download_button(

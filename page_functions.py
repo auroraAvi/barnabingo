@@ -240,25 +240,26 @@ def clear_card_store() -> None:
             # Get file in directory
             file_path = os.path.join("Bingo_Card", filename)
             # Check if it is a file (not a subdirectory & not the currently relevant one
-            if (os.path.isfile(file_path)) & (st.session_state.bingo_card not in file_path) & (st.session_state.last_card not in file_path):
+            if (os.path.isfile(file_path)) & (datetime.today().strftime("%d-%m-%Y") not in file_path):
                 os.remove(file_path)
 
 
 ##########################################################################################################################################################
-def get_last_card():
+def get_previous_cards():
     cards = sorted(os.listdir("Bingo_Card"))
     terms = [c for c in cards if (st.session_state.userID in c) & ("csv" in c)]
-    if len(terms) > 1:
-        return str(os.path.join("Bingo_Card",terms[-2].split(".csv")[0]))
-    elif len(terms) > 0:
-        return str(os.path.join("Bingo_Card",terms[-1].split(".csv")[0]))
-    else:
-        return None
+    return [term.split(".csv")[0] for term in terms]
+    # if len(terms) > 1:
+    #     return str(os.path.join("Bingo_Card",terms[-2].split(".csv")[0]))
+    # elif len(terms) > 0:
+    #     return str(os.path.join("Bingo_Card",terms[-1].split(".csv")[0]))
+    # else:
+    #     return None
 
 
 ##########################################################################################################################################################
-def set_last_card():
-    st.session_state.set_last = True
+def set_previous_card():
+    st.session_state.set_prev = True
     st.session_state.confirmed_refresh = True
 
 
