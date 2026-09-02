@@ -4,4 +4,4 @@ matplotlib
 streamlit_image_coordinates >= 0.4.1
 scipy
 altair<5
-streamlit >= 1.63.0
+streamlit >= 1.57.0
