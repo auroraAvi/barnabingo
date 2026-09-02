@@ -91,7 +91,7 @@ def get_card_terms(rowlen:int, terms:pd.DataFrame, custom_terms:list[str], exclu
 def switch_single_field(terms, current_terms):
     remaining_terms = [i for i in terms["terms"] if (i not in st.session_state.excluded_terms) & (i not in list(current_terms["terms"]))]
     new_term = random.sample(remaining_terms, 1)
-    new_data = terms.loc[terms.terms.values == new_term].reset_index(drop=True)
+    new_data = terms.loc[terms.terms.isin(new_term)].reset_index(drop=True)
     old_data = current_terms.loc[(current_terms.terms.isin(st.session_state.excluded_terms)) & (current_terms.custom != -1)].reset_index(drop=True)
     old_data.custom = -1
     current_terms.loc[current_terms.terms.values == old_data.terms.values, ["terms", "comments"]] = list(new_data.loc[0, ["terms", "comments"]])
