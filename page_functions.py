@@ -248,13 +248,7 @@ def clear_card_store() -> None:
 def get_previous_cards():
     cards = sorted(os.listdir("Bingo_Card"))
     terms = [c for c in cards if (st.session_state.userID in c) & ("csv" in c)]
-    return [term.split(".csv")[0] for term in terms]
-    # if len(terms) > 1:
-    #     return str(os.path.join("Bingo_Card",terms[-2].split(".csv")[0]))
-    # elif len(terms) > 0:
-    #     return str(os.path.join("Bingo_Card",terms[-1].split(".csv")[0]))
-    # else:
-    #     return None
+    return [term.split(f"-Bingo_{st.session_state.userID}.csv")[0] for term in terms]
 
 
 ##########################################################################################################################################################

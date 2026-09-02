@@ -30,6 +30,7 @@ from matplotlib.offsetbox import AnnotationBbox
 import streamlit as st
 import numpy as np
 import random
+import time
 random.seed(random.random())
 
 from typing import Literal
@@ -79,12 +80,24 @@ def get_card_terms(rowlen:int, terms:pd.DataFrame, custom_terms:list[str], exclu
     bingo_data.loc[(rowlen*rowlen)//2-0.5] = ["FREE", None, 0]
     # Reindex to keep order after insertion
     bingo_data = bingo_data.sort_index().reset_index(drop=True)
+    bingo_data = pd.concat([bingo_data, terms.loc[terms.terms.isin(excluded_terms)]]).reset_index(drop=True)
     bingo_data.loc[bingo_data.terms.isin(custom_terms), "custom"] = 1
     bingo_data.loc[bingo_data.terms.isin(excluded_terms), "custom"] = -1
-    bingo_data.loc[~bingo_data.terms.isin(excluded_terms +custom_terms), "custom"] = 0
+    bingo_data.loc[~bingo_data.terms.isin(excluded_terms+custom_terms), "custom"] = 0
     bingo_data.to_csv(f"{st.session_state.bingo_card}.csv")
     return bingo_data
 
+##########################################################################################################################################################
+def switch_single_field(terms, current_terms):
+    remaining_terms = [i for i in terms["terms"] if (i not in st.session_state.excluded_terms) & (i not in list(current_terms["terms"]))]
+    new_term = random.sample(remaining_terms, 1)
+    new_data = terms.loc[terms.terms.values == new_term].reset_index(drop=True)
+    old_data = current_terms.loc[(current_terms.terms.isin(st.session_state.excluded_terms)) & (current_terms.custom != -1)].reset_index(drop=True)
+    old_data.custom = -1
+    current_terms.loc[current_terms.terms.values == old_data.terms.values, ["terms", "comments"]] = list(new_data.loc[0, ["terms", "comments"]])
+    bingo_data = pd.concat([current_terms, old_data]).reset_index(drop=True)
+    bingo_data.to_csv(f"{st.session_state.bingo_card}.csv")
+    return bingo_data
 
 ##########################################################################################################################################################
 def split_term(word:str, max_chars:int) -> tuple[str, int] :
@@ -169,6 +182,11 @@ def split_term(word:str, max_chars:int) -> tuple[str, int] :
         # Return structured term + penalty
         return row_words, penalty
     else:
+        if ("-" in word) & ("/" not in word):
+            word_parts = word.split("-")
+            word = ""
+            for w in word_parts:
+                word = word + w
         # Return term as is
         return word, 0
 
@@ -270,27 +288,64 @@ def update_bingo_card(fig:Figure, ax:Axis, xy:tuple[float, float], task:Literal[
 ##########################################################################################################################################################
 def add_custom_terms() -> None:
     """Add term to list of customly added terms."""
+    # Custom term was removed from list
+    if len(st.session_state.custom_change) < len(st.session_state.custom_terms):
+        for ct in st.session_state.custom_terms:
+            if ct not in st.session_state.custom_change: # removed term
+                # Switch custom label in table
+                st.session_state.bingo_terms.loc[st.session_state.bingo_terms.terms.isin([ct]), "custom"] = 0
+        # Refresh without changing anything
+        st.session_state.confirmed_refresh = True
+        st.session_state.custom_column_switch = True
+    else: # custom term added to list
+        for ct in st.session_state.custom_change:
+            # If term not in current card terms
+            if ct not in list(st.session_state.bingo_terms["terms"]):
+                # Refresh card
+                st.session_state.confirmed_refresh = True
+                st.session_state.customisation = True
+            # If term in current card terms but with different custom label
+            elif st.session_state.bingo_terms.loc[st.session_state.bingo_terms.terms.values == ct, "custom"].values == 0:
+                # Switch label
+                st.session_state.bingo_terms.loc[st.session_state.bingo_terms.terms.values == ct, "custom"] = 1
+                # Refresh without changing anything
+                st.session_state.confirmed_refresh = True
+                st.session_state.custom_column_switch = True
+            elif st.session_state.bingo_terms.loc[st.session_state.bingo_terms.terms.values == ct, "custom"].values == -1:
+                # Switch label
+                st.session_state.bingo_terms.loc[st.session_state.bingo_terms.terms.values == ct, "custom"] = 1
+                
+                # Refresh card
+                st.session_state.confirmed_refresh = True
+                st.session_state.customisation = True
     # Set session state with new list
     st.session_state.custom_terms = st.session_state.custom_change
-    for ct in st.session_state.custom_terms:
-        # If term not in current card terms
-        if ct not in list(st.session_state.bingo_terms["terms"]):
-            # Refresh card
-            st.session_state.confirmed_refresh = True
-            st.session_state.customisation = True
-
+    
 
 ##########################################################################################################################################################
-def remove_custom_terms() -> None:
+def remove_custom_terms(terms) -> None:
     """Add term to list of excluded terms."""
-    # Set session state with new list
-    st.session_state.excluded_terms = st.session_state.exclusion_change
-    for et in st.session_state.excluded_terms:
-        # If term in current card terms
-        if et in list(st.session_state.bingo_terms["terms"]):
+    # Term was removed from list
+    if len(st.session_state.exclusion_change) < len(st.session_state.excluded_terms):
+        rem_et = [et for et in st.session_state.excluded_terms if et not in st.session_state.exclusion_change]
+        st.session_state.bingo_terms.drop(st.session_state.bingo_terms.loc[st.session_state.bingo_terms.terms.values == rem_et].index, inplace=True)
+        # Refresh without changing anything
+        st.session_state.confirmed_refresh = True
+        st.session_state.custom_column_switch = True
+    else: # term added to list
+        new_et = [et for et in st.session_state.exclusion_change if et not in st.session_state.excluded_terms]
+        if new_et[0] not in list(st.session_state.bingo_terms["terms"]):
+            added_excl_term = terms.loc[terms.terms.values == new_et].reset_index(drop=True)
+            added_excl_term.custom = -1
+            st.session_state.bingo_terms = pd.concat([st.session_state.bingo_terms, added_excl_term]).reset_index(drop=True)
+            # Refresh without changing anything
+            st.session_state.confirmed_refresh = True
+            st.session_state.custom_column_switch = True
+        else:
             # Refresh card
             st.session_state.confirmed_refresh = True
-            st.session_state.customisation = True
-
+            st.session_state.exclusion = True
+    # Set session state with new list
+    st.session_state.excluded_terms = st.session_state.exclusion_change
 
 ##########################################################################################################################################################

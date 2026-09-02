@@ -22,20 +22,37 @@ st.set_page_config(
 
 # Initialise card grid
 grid_size = 5
+# Initialise Inspector
+inspector = "John"
 # Load all terms
-data = pf.load_data(
-    [
-        "./data/dinge.csv",
-        "./data/handlung_ermittlung.csv",
-        "./data/handlung_fall.csv",
-        "./data/handlung_sonstiges.csv",
-        "./data/meta.csv",
-        "./data/orte.csv",
-        "./data/personen.csv",
-        "./data/tatsachen.csv",
-        "./data/tom.csv"
-    ]
-)
+if inspector == "Tom":
+    data = pf.load_data(
+        [
+            "./data/dinge.csv",
+            "./data/handlung_ermittlung.csv",
+            "./data/handlung_fall.csv",
+            "./data/handlung_sonstiges.csv",
+            "./data/meta.csv",
+            "./data/orte.csv",
+            "./data/personen.csv",
+            "./data/tatsachen.csv",
+            "./data/tom.csv"
+        ]
+    )
+else:
+    data = pf.load_data(
+            [
+                "./data/dinge.csv",
+                "./data/handlung_ermittlung.csv",
+                "./data/handlung_fall.csv",
+                "./data/handlung_sonstiges.csv",
+                "./data/meta.csv",
+                "./data/orte.csv",
+                "./data/personen.csv",
+                "./data/tatsachen.csv",
+                "./data/john.csv",
+            ]
+        )
 # Initialise directory to save images to
 os.makedirs("Bingo_Card", exist_ok=True)
 # Initialise stamp artist
@@ -48,15 +65,18 @@ else:
     if 'game' not in st.session_state:
         # File path for current card
         st.session_state.bingo_card = str(os.path.join("Bingo_Card", f"{pf.load_start_date()}-Bingo_{st.session_state.userID}")) 
+        st.session_state.active_card = st.session_state.bingo_card
         # st.session_state.start_time = pf.load_start_time()
         st.session_state.custom_terms = [] # Added terms
         st.session_state.excluded_terms = [] # Excluded terms
         st.session_state.customisation = False
+        st.session_state.exclusion = False
+        st.session_state.custom_column_switch = False
         # Terms for current card
         st.session_state.bingo_terms  = cf.get_card_terms(grid_size, data, st.session_state.custom_terms, st.session_state.excluded_terms)
         st.session_state.stamp = stamp # Bingo stamp
         # Create current card
-        st.session_state.fig, st.session_state.ax = cf.create_bingo_card(grid_size, st.session_state.bingo_terms["terms"])
+        st.session_state.fig, st.session_state.ax = cf.create_bingo_card(grid_size, st.session_state.bingo_terms.loc[st.session_state.bingo_terms.custom != -1, "terms"])
         st.session_state.confirmed_refresh = False # Refresh check
         st.session_state.last_click = 0 # Time of last click
         st.session_state.bingo_count = 0 # Bingo counter
@@ -70,35 +90,50 @@ else:
 
     if st.session_state.confirmed_refresh:
         st.session_state.confirmed_refresh = False  # Refresh check
-        
         st.session_state.stamp = stamp # Bingo stamp
-        
+
+        ## RESTORING PREVIOUS CARD
         if st.session_state.set_prev == True:
             st.session_state.set_prev = False
-            st.session_state.bingo_card = str(os.path.join("Bingo_Card", st.session_state.active_card))
+            # Build current card path from menu selection
+            st.session_state.bingo_card = str(os.path.join("Bingo_Card", f"{st.session_state.active_card}-Bingo_{st.session_state.userID}"))
+            # Get terms from file
             st.session_state.bingo_terms = pd.read_csv(st.session_state.bingo_card + ".csv", index_col=0)
+            # Set custom selections from  file
             st.session_state.custom_change = list(st.session_state.bingo_terms.loc[st.session_state.bingo_terms.custom == 1, "terms"])
             st.session_state.custom_terms = st.session_state.custom_change
+            # Set exclusion selections from file
             st.session_state.exclusion_change = list(st.session_state.bingo_terms.loc[st.session_state.bingo_terms.custom == -1, "terms"])
             st.session_state.excluded_terms = st.session_state.exclusion_change
+        ## NEW CUSTOM OR EXCLUDED TERMS
+        elif st.session_state.exclusion == True:
+            st.session_state.exclusion = False
+            st.session_state.bingo_terms = cf.switch_single_field(data, st.session_state.bingo_terms)
         elif st.session_state.customisation == True:
             st.session_state.customisation = False
-            st.session_state.bingo_terms = cf.get_card_terms(grid_size, data, st.session_state.custom_terms, st.session_state.excluded_terms)
+            st.session_state.bingo_terms = cf.get_card_terms(grid_size, data, st.session_state.custom_terms, st.session_state.excluded_terms)    
+        elif st.session_state.custom_column_switch == True:
+            st.session_state.custom_column_switch = False
+            st.session_state.bingo_terms.to_csv(f"{st.session_state.bingo_card}.csv")
         else:
             st.session_state.bingo_card = str(os.path.join("Bingo_Card", f"{pf.load_start_date()}-Bingo_{st.session_state.userID}")) 
-            st.session_state.active_card = f"{st.session_state.bingo_card}.csv"
+            ## TERMS UPLOADED FROM FILE
             if st.session_state.uploaded_terms == True:
                 st.session_state.uploaded_terms = False
+                # Save new terms to file
                 st.session_state.bingo_terms.to_csv(f"{st.session_state.bingo_card}.csv")
+                # Set custom selections from file
                 st.session_state.custom_change = list(st.session_state.bingo_terms.loc[st.session_state.bingo_terms.custom == 1, "terms"])
                 st.session_state.custom_terms = st.session_state.custom_change
+                # Set exclusion selections from file
                 st.session_state.exclusion_change = list(st.session_state.bingo_terms.loc[st.session_state.bingo_terms.custom == -1, "terms"])
                 st.session_state.excluded_terms = st.session_state.exclusion_change
+            ## REGULAR CARD REFRESH
             else:
                 st.session_state.bingo_terms = cf.get_card_terms(grid_size, data, st.session_state.custom_terms, st.session_state.excluded_terms)
         
         # Create current card
-        st.session_state.fig, st.session_state.ax = cf.create_bingo_card(grid_size, st.session_state.bingo_terms["terms"])
+        st.session_state.fig, st.session_state.ax = cf.create_bingo_card(grid_size, st.session_state.bingo_terms.loc[st.session_state.bingo_terms.custom != -1, "terms"])
         
         st.session_state.game = pf.load_grid(grid_size) # Checked/unchecked fields as logical array
         st.session_state.bingo_count = 0 # Bingo counter
@@ -110,6 +145,10 @@ else:
     if st.session_state.new_bingo:
         st.balloons()
         st.session_state.new_bingo = False
+
+    ##########################################################################################################################################################
+    # TESTING
+    # st.write(st.session_state.bingo_terms)
 
     ##########################################################################################################################################################
     # Title
@@ -155,7 +194,7 @@ else:
     # Display everything
     pd.options.display.chop_threshold=None
     # Get terms that have explanations on current card
-    comment_terms = st.session_state.bingo_terms.loc[st.session_state.bingo_terms.comments.notna(), ["terms", "comments"]].sort_index(ascending=False)
+    comment_terms = st.session_state.bingo_terms.loc[(st.session_state.bingo_terms.comments.notna()) & (st.session_state.bingo_terms.custom != -1), ["terms", "comments"]].sort_index(ascending=False)
     # Display as table
     if len(comment_terms) > 0:
         # Format terms
@@ -188,6 +227,7 @@ else:
                 key="exclusion_change", 
                 accept_new_options=False, 
                 on_change=cf.remove_custom_terms,
+                args = [data],
             )
         st.divider()
         st.subheader("Wiederherstellung")
