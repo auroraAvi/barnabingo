@@ -335,7 +335,7 @@ def remove_custom_terms(terms) -> None:
     else: # term added to list
         new_et = [et for et in st.session_state.exclusion_change if et not in st.session_state.excluded_terms]
         if new_et[0] not in list(st.session_state.bingo_terms["terms"]):
-            added_excl_term = terms.loc[terms.terms.values == new_et].reset_index(drop=True)
+            added_excl_term = terms.loc[terms.terms.values == new_et[0]].reset_index(drop=True)
             added_excl_term.custom = -1
             st.session_state.bingo_terms = pd.concat([st.session_state.bingo_terms, added_excl_term]).reset_index(drop=True)
             # Refresh without changing anything
